@@ -235,10 +235,46 @@ struct Song: Codable, Identifiable {
 ```
 
 **何をしているか：**
+//デコード部分//
+テキストフィールドに入力した文字をURLに組み込めるようにエンコードするコード。
+検索する際にURLには直接日本語を入れることができないので
+%AD%GF%YH%UUのように日本語を変換する必要がある。
+そこでコード2行目の.addingPercentEncording(withAllowedCharacters: .urlQueryAllowed)によって
+URLに組み込めない日本語を組み込めるようにしている。
+
+guard let encodedText = searchText.addingPercentEncoding(
+            withAllowedCharacters: .urlQueryAllowed
+        ) else { return }
+
+
+//do catchの部分//
+
+
 
 **なぜこう書くのか：**
 
+
 **もしこう書かなかったら：**
+調べたら昔はJSONSerializationという方法が使われていた。
+
+違い↓
+
+今: JSONDecoder
+struct Song: Decodable {
+    let trackName: String
+}
+
+👉 コンパイル時にチェックされる
+👉 型ミスするとエラーになる
+
+昔: JSONSerialization
+let name = item["trackName"] as? String
+
+👉 実行時までわからない
+👉 ミスっても気づきにくい
+
+JSONSerializationはもしnilになっても実行されてしまうので爆発してしまう可能性がある.
+現在のJSONDecoderはコンパイエウジにチェックされるのでエラーがすぐわかる。
 
 ---
 
@@ -246,6 +282,34 @@ struct Song: Codable, Identifiable {
 
 ```swift
 // 該当部分のコードを抜粋して貼る
+struct SongRow: View {
+    let song: Song
+
+    var body: some View {
+        HStack(spacing: 12) {
+            AsyncImage(url: URL(string: song.artworkUrl100)) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Color.gray.opacity(0.3)
+            }
+            .frame(width: 60, height: 60)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(song.trackName)
+                    .font(.headline)
+                    .lineLimit(1)
+
+                Text(song.artistName)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
 ```
 
 **何をしているか：**
