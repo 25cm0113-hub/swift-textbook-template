@@ -174,6 +174,21 @@ guard let encodedText = searchText.addingPercentEncoding(
 
 ```swift
 // 該当部分のコードを抜粋して貼る
+// MARK: - データモデル
+
+struct SearchResponse: Codable {
+    let results: [Song]
+}
+
+struct Song: Codable, Identifiable {
+    let trackId: Int
+    let trackName: String
+    let artistName: String
+    let artworkUrl100: String
+    let previewUrl: String?
+
+    var id: Int { trackId }
+}
 ```
 
 **何をしているか：**
@@ -191,6 +206,32 @@ guard let encodedText = searchText.addingPercentEncoding(
 
 ```swift
 // 該当部分のコードを抜粋して貼る
+    // MARK: - API通信
+
+    func searchMusic() async {
+        guard let encodedText = searchText.addingPercentEncoding(
+            withAllowedCharacters: .urlQueryAllowed
+        ) else { return }
+
+        let urlString = "https://itunes.apple.com/search?term=\(encodedText)&media=music&country=jp&limit=25"
+
+        guard let url = URL(string: urlString) else { return }
+
+        isLoading = true
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let response = try JSONDecoder().decode(SearchResponse.self, from: data)
+            songs = response.results
+        } catch {
+            print("エラー: \(error.localizedDescription)")
+            songs = []
+        }
+
+        isLoading = false
+    }
+}
+
 ```
 
 **何をしているか：**
