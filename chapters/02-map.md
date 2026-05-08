@@ -282,12 +282,17 @@ struct Landmark: Identifiable, Hashable {
 ```
 
 **何をしているか：**
-構造体でid,名前,
+構造体でid,名前,を一括で管理できるようになっている(ランドマーク１つ分)
+
 **なぜこう書くのか：**
 （別の書き方ではなく、この書き方が選ばれている理由を説明する）
+構造体を使うことによって名前やidを管理しやすくなる
+Identifiableをつけることによって各ランドマークを区別できるようになっている(ForEachで簡単に管理できる)
 
 **もしこう書かなかったら：**
 （この部分を省略したり変えたりすると何が起きるか。実際に試した結果があればここに書く）
+構造たいを使わないとそれぞれの配列でずれが起きバグの温床になる
+Identifiableがないとidを何番目か指定しなくなりめんどくさい。ForEachをつける。
 
 ---
 
@@ -295,9 +300,19 @@ struct Landmark: Identifiable, Hashable {
 
 ```swift
 // 該当部分のコードを抜粋して貼る
+@State private var cameraPosition: MapCameraPosition = .region(
+    MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 35.6812, longitude: 139.7671),
+        span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
+    )
+)
+
+Map(position: $cameraPosition, selection: $selectedLandmark) {
 ```
 
 **何をしているか：**
+Map()で画面に地図を表示している
+またMapCameraPositionでマップの中心位置やぜー無倍率
 
 **なぜこう書くのか：**
 
