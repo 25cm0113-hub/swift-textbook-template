@@ -188,21 +188,23 @@ struct CameraView: UIViewControllerRepresentable {
 // 該当部分のコードを抜粋して貼る
 PhotosPicker(selection: $selectedItem, matching: .images) {
                         Label("ライブラリ", systemImage: "photo.on.rectangle")
-                    }
+}
 ```
 
 **何をしているか：**
 （この部分が果たしている役割を説明する）
 見た目:文字とシステムイメージアイコンで構成されている
-処理:PhotosPickerというSwiftの機能でmatching: .imagesで写真という種類を指定している
-選んだ画像は最初に宣言した$selectedItemに格納される.
+処理:PhotosPickerというSwiftの機能でmatching: .imagesで写真という種類を指定しているのでライブラリを開くと通常は写真以外選択できない
+選んだ画像は最初に宣言したselectedItemに格納される。ここでは画像そのものが入るのではなく写真の情報が入っている
 
 
 **なぜこう書くのか：**
-（別の書き方ではなく、この書き方が選ばれている理由を説明する）
+なぜPickerで選んだ写真を一旦selectedItemに一旦入れるのか?
+→UIImageで返すと爆発する可能性があったり今回は非同期で行うため
+selectedItemにはこの写真が選ばれましたという情報が入り画像表示自体はまた後でやる
 
 **もしこう書かなかったら：**
-（この部分を省略したり変えたりすると何が起きるか。実際に試した結果があればここに書く）
+もし選択された画像がicloudからでダウンロードに時間がかかったりRAW画像で高画質だったりすると重い。
 
 ---
 
@@ -210,13 +212,31 @@ PhotosPicker(selection: $selectedItem, matching: .images) {
 
 ```swift
 // 該当部分のコードを抜粋して貼る
+func loadImage(from item: PhotosPickerItem?) async {
+        guard let item = item else { return }
+
+        do {
+            if let data = try await item.loadTransferable(type: Data.self),
+               let uiImage = UIImage(data: data) {
+                selectedImage = Image(uiImage: uiImage)
+            }
+        } catch {
+            print("画像の読み込みに失敗: \(error.localizedDescription)")
+        }
+    }
 ```
 
 **何をしているか：**
+これは前述でPhotosPickerに選ばれた写真の情報が正しいものなのか。また合っていたら非同期処理でUIImageに画像を表示する関数。
 
 **なぜこう書くのか：**
+guard letで選んだ写真の情報を安全に処理している
+asyncはここの関数はこのあとのawait(非同期)処理に含まれていますという宣言。
+awaitの非同期処理で処理をバックグラウンドで行っている
 
 **もしこう書かなかったら：**
+guard letではなくif let で書くとネストが深くなる。(読みづらくなる)
+画像オブジェクトは他のデータと比べて重いためUIImageのUI更新(ここでいうと画像表示)をawait(非同期処理)で行わないとフリーズの原因になる
 
 ---
 
