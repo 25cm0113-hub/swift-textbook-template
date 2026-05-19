@@ -244,11 +244,61 @@ guard letではなくif let で書くとネストが深くなる。(読みづら
 
 ```swift
 // 該当部分のコードを抜粋して貼る
+// MARK: - カメラビュー（UIKit連携）
+
+struct CameraView: UIViewControllerRepresentable {
+    @Binding var capturedImage: UIImage?
+    @Environment(\.dismiss) private var dismiss
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: CameraView
+
+        init(_ parent: CameraView) {
+            self.parent = parent
+        }
+
+        func imagePickerController(
+            _ picker: UIImagePickerController,
+            didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
+        ) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.capturedImage = image
+            }
+            parent.dismiss()
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
+        }
+    }
+}
 ```
 
 **何をしているか：**
+SwiftUI から UIKit のカメラ機能（UIImagePickerController）を使うための橋渡しを行なっている
+具体的には
+1:カメラ画面を作る
+2:撮影結果を受け取る
+3:SwiftUIへ渡す
+4:画面を閉じる
+SwiftUIだけでは標準カメラ画面を直接出せないので、昔からあるUIKitのカメラ機能を利用しています。
 
 **なぜこう書くのか：**
+UIImagePickerViewはUIKit なのでSwiftUI直接にハックことができないため。
+なのでUIVIewControllerRepresentableをつかいSwiftUIで使えるよう変換を行っている
 
 **もしこう書かなかったら：**
 
