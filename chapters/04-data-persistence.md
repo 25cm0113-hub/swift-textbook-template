@@ -286,13 +286,17 @@ class Memo {
 ```
 
 **何をしているか：**
-（この部分が果たしている役割を説明する）
+タイトル、内容、作成日、お気に入りのメモかどうかを保存している
+また@Modelを最初につけることによってSwiftDataにデータを保存することを教えているめちゃじゅうよう。
+initはオブジェクトを入れるための初期化
 
 **なぜこう書くのか：**
-（別の書き方ではなく、この書き方が選ばれている理由を説明する）
+メモとして必要な情報を持たせて、作る時に正しく初期化するため
+タイトル、内容、作成日をまとめて管理したいためクラスを作っている
 
 **もしこう書かなかったら：**
-（この部分を省略したり変えたりすると何が起きるか。実際に試した結果があればここに書く）
+initを書かなかったらコンパイルエラー。
+殻の洗いを持たせるための作る特のルールとしてこれを書いている。
 
 ---
 
@@ -300,9 +304,66 @@ class Memo {
 
 ```swift
 // 該当部分のコードを抜粋して貼る
+// MARK: - メモ追加画面
+
+struct MemoAddView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    @State private var title = ""
+    @State private var content = ""
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("タイトル") {
+                    TextField("メモのタイトル", text: $title)
+                }
+                Section("内容") {
+                    TextEditor(text: $content)
+                        .frame(minHeight: 200)
+                }
+            }
+            .navigationTitle("新しいメモ")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("キャンセル") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("保存") {
+                        let memo = Memo(title: title, content: content)
+                        modelContext.insert(memo)
+                        dismiss()
+                    }
+                    .disabled(title.isEmpty)
+                }
+            }
+        }
+    }
+}
+
 ```
 
 **何をしているか：**
+新しくメモを追加する画面
+
+SwiftDataに入力したものを入れている
+Formでタイトルと内容をTextEditorに格納している
+modekContext.insert(memo)で入力した２つをmemoとしてまとめて入れている
+
+削除画面
+① メモを左にスワイプ
+↓
+② deleteMemos が呼ばれる
+func deleteMemos(at offsets: IndexSet)
+↓
+③ どのメモか取り出す
+let memo = displayedMemos[index]
+↓
+④ delete
+modelContext.delete(memo)
+↓
+⑤ 画面から消える
 
 **なぜこう書くのか：**
 
@@ -314,6 +375,8 @@ class Memo {
 
 ```swift
 // 該当部分のコードを抜粋して貼る
+@Query(sort: \Memo.createdAt, order: .reverse)
+private var memos: [Memo]
 ```
 
 **何をしているか：**
