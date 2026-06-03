@@ -353,6 +353,7 @@ struct MemoAddView: View {
 SwiftDataに入力したものを入れている
 Formでタイトルと内容をTextEditorに格納している
 modekContext.insert(memo)で入力した２つをmemoとしてまとめて入れている
+dismis()メソッドで前の画面に戻っている
 
 削除画面
 ① メモを左にスワイプ
@@ -368,10 +369,32 @@ modelContext.delete(memo)
 ↓
 ⑤ 画面から消える
 
+データ追加
+①ボタンが押されたらmemoという変数に入力した内容を入れている
+let memo = Memo(title: title, content: content)
+
+②.insertでmemoを保存している
+modelContext.insert(memo)
+
+
+
+
 **なぜこう書くのか：**
+環境変数:
+今回はdismiss()に使われている。もし環境変数じゃないと...
+struct MemoAddView: View {
+    let dismiss: () -> Void
+}
+のように親画面から毎回渡さなければならない。
+dismissという変数に画面を閉じる機能を渡すことで呼び出しを簡単にしている.
 
 **もしこう書かなかったら：**
-
+dismiss()
+↓
+struct MemoAddView: View {
+    let dismiss: () -> Void
+}
+長い！
 ---
 
 ### @Queryによるデータ取得
@@ -383,10 +406,22 @@ private var memos: [Memo]
 ```
 
 **何をしているか：**
+@Query -> SwiftDataからデータちょうだいー
+(sort:) -> 保存されたメモ並び替え
+Memo.createAt -> 作成順!
+order: .reverse -> 作成順の逆だから新しい順になる
 
 **なぜこう書くのか：**
+@Queryが便利すぎる
 
 **もしこう書かなかったら：**
+@Queryは自動でデータを再取得してくれるため
+もしコレが無いと
+わざわざ別変数に格納して並び替えする
+catch文で爆発しないようにしないといけない
+画面表示の時に.loadをつけないといけなくなる
+
+のようにめんどくさいことが増える
 
 ---
 
@@ -394,6 +429,8 @@ private var memos: [Memo]
 
 ```swift
 // 該当部分のコードを抜粋して貼る
+@AppStorage("sortByFavorite") private var sortByFavorite: Bool = false
+@AppStorage("userName") private var userName: String = ""
 ```
 
 **何をしているか：**
