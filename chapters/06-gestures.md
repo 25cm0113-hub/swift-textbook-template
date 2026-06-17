@@ -373,10 +373,69 @@ struct CombinedDemoView: View {
 
 ```swift
 // 該当部分のコードを抜粋して貼る
+// MARK: - タップ & ロングプレス
+
+struct TapDemoView: View {
+    @State private var tapCount = 0
+    @State private var backgroundColor: Color = .blue
+    @State private var isPressed = false
+
+    var body: some View {
+        VStack(spacing: 30) {
+            Text("タップ回数: \(tapCount)")
+                .font(.title)
+
+            // シングルタップ
+            RoundedRectangle(cornerRadius: 16)
+                .fill(backgroundColor)
+                .frame(width: 200, height: 200)
+                .overlay {
+                    Text("タップしてね")
+                        .foregroundStyle(.white)
+                        .font(.headline)
+                }
+                .onTapGesture {
+                    tapCount += 1
+                    backgroundColor = Color(
+                        hue: Double.random(in: 0...1),
+                        saturation: 0.7,
+                        brightness: 0.9
+                    )
+                }
+
+            // ロングプレス
+            Circle()
+                .fill(isPressed ? .green : .orange)
+                .frame(width: 120, height: 120)
+                .scaleEffect(isPressed ? 1.3 : 1.0)
+                .overlay {
+                    Text(isPressed ? "成功!" : "長押し")
+                        .foregroundStyle(.white)
+                        .font(.headline)
+                }
+                .animation(.spring(duration: 0.3), value: isPressed)
+                .onLongPressGesture(minimumDuration: 1.0) {
+                    isPressed = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        isPressed = false
+                    }
+                }
+        }
+        .navigationTitle("タップ & ロングプレス")
+    }
+}
 ```
 
 **何をしているか：**
-（この部分が果たしている役割を説明する）
+タップと長押しタップの二つのジェスチャー処理をしている画面。
+
+ビューの構成は上から(VStack)で
+
+.navigationtitleで タップ & ロングプレス と表示
+タップ処理のタップ数を表示
+『タップしてね』と書いてある角が丸い四角のボタン
+『長押し』と書いてある丸のボタン
+
 
 **なぜこう書くのか：**
 （別の書き方ではなく、この書き方が選ばれている理由を説明する）
