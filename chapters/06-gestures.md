@@ -437,6 +437,23 @@ struct TapDemoView: View {
 『長押し』と書いてある丸のボタン
 
 
+通常タップの処理
+
+長方形のボタンに[.onTapGesture{}]を用いり,
+押されたら、、、
+
+・TapCount をインクリメント
+
+ボタンの背景色(backgroundColor)の色相(hue)をランダムに変えている。明度や色彩は固定なため色だけ変わる
+hue(色相): Double.random(in: 0...1)
+
+長押しの処理
+丸のボタンに [.onLongPressGesture(minimumDuration: 1.0){}] を用いり、
+1.0秒以上([minumumDuration: 1.0])長押しされたら、、、
+
+isPressed を True に
+DispatchQueue
+
 **なぜこう書くのか：**
 （別の書き方ではなく、この書き方が選ばれている理由を説明する）
 
